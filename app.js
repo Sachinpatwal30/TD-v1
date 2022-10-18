@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-
+const _ = require("lodash")
 
 const app = express();
 app.use(express.static("public"));
@@ -37,11 +37,11 @@ const defaultItems = [item1, item2, item3];
 const listSchema = new mongoose.Schema({
 
 
-	name:String,
-	items:[itemSchema]
+	name: String,
+	items: [itemSchema]
 })
 
-const List= mongoose.model("List",listSchema);
+const List = mongoose.model("List", listSchema);
 
 
 
@@ -79,57 +79,90 @@ app.get("/", (req, res) => {
 	})
 })
 
-app.get("/:topic",(req,res)=>{ 
-    
-	const customListName=req.params.topic;  
+app.get("/:topic", (req, res) => {
 
-	 
-	
+	const customListName = _.capitalize(req.params.topic);
 
+	List.findOne({
+		name: customListName
+	}, (err, foundList) => {
 
+		if (!err) {
+			if (foundList)
+				res.render("list", {
+					listTitle: customListName,
+					newListItems: foundList.items
+				});
+			else {
 
-	 List.findOne({name:customListName},(err,foundList)=>{
+				const list = new List({
 
-       if(!err)
-	   {
-		if(foundList)
-	   res.render("list",{listTitle:customListName,newListItems:foundList.items});
-	    else
-	  {
-
-		const list= new List({
- 
-			name:customListName,
-			items:defaultItems
-		});
-			list.save();
+					name: customListName,
+					items: defaultItems
+				});
+				list.save();
 
 
-			res.redirect("/"+customListName);
+				res.redirect("/" + customListName);
 
 
-	  }
-	   }
-     
+			}
+		}
 
-	 })
+
+	})
 
 })
 
 
 
-
-
 app.post("/delete", (req, res) => {
 
-	Item.deleteOne({ _id: req.body.checkbox}, (err) => {
 
-		if (err)
-			console.log(err)
-		else
-			res.redirect("/");
+	const listName = req.body.listName;
+	const checkedItemId = req.body.checkbox;
 
-	});
+	console.log(req.body)
+
+
+	if (listName === "Today") {
+
+		Item.deleteOne({
+			_id: checkedItemId
+		}, (err) => {
+
+			if (err)
+				console.log(err)
+			else
+				res.redirect("/");
+
+		});
+
+	} else {
+
+
+		List.findOneAndUpdate({
+			name: listName
+		}, {
+			$pull: {
+				items: {
+					_id: checkedItemId
+				}
+			}
+		}, (err, foundList) => {
+
+			if (!err) {
+				res.redirect("/" + listName);
+			}
+
+
+		})
+
+
+
+
+	}
+
 
 })
 
@@ -138,28 +171,29 @@ app.post("/", (req, res) => {
 
 
 	console.log(req.body)
-    const item = new Item({
-    	name: req.body.input
+	const item = new Item({
+		name: req.body.input
 
 	})
 
 
 	if (req.body.btn == "Today") {
-	
-		
+
+
 		item.save();
-       res.redirect("/");
-	}
-	else{
+		res.redirect("/");
+	} else {
 
 
-		List.findOne({name:req.body.btn},(err,foundList)=>{
+		List.findOne({
+			name: req.body.btn
+		}, (err, foundList) => {
 
-          foundList.items.push(item);
-		  foundList.save();
+			foundList.items.push(item);
+			foundList.save();
 		})
-		res.redirect("/"+req.body.btn);
-		 
+		res.redirect("/" + req.body.btn);
+
 	}
 
 })
@@ -168,7 +202,10 @@ app.post("/", (req, res) => {
 app.get("/work", (req, res) => {
 
 
-	res.render("list", {	listTitle: "Work List",	newListItems: workItems });
+	res.render("list", {
+		listTitle: "Work List",
+		newListItems: workItems
+	});
 
 })
 
