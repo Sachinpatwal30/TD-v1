@@ -71,6 +71,19 @@ app.get("/",(req,res)=>{
   })
 })
 
+app.post("/delete",(req,res)=>{
+
+   Item.deleteOne({_id:req.body.checkbox},(err)=>{
+     
+    if(err)
+    console.log(err)
+    else
+    res.redirect("/");
+
+   });
+
+})
+
 
 app.post("/",(req,res)=>{
 
