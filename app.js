@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
 const _ = require("lodash")
+require("dotenv").config();
 
 const app = express();
 app.use(express.static("public"));
@@ -10,7 +11,13 @@ app.set("view engine", 'ejs');
 app.use(bodyParser.urlencoded({
 	extended: false
 }));
-mongoose.connect("mongodb://localhost:27017/todolistDB");
+
+
+
+const Id=process.env.ID;
+const Password=process.env.Password;
+const url="mongodb+srv://"+Id+Password+"@cluster0.yjjj2y2.mongodb.net/todolistDB";
+mongoose.connect(url);
 
 
 const itemSchema = new mongoose.Schema({
@@ -122,7 +129,6 @@ app.post("/delete", (req, res) => {
 	const listName = req.body.listName;
 	const checkedItemId = req.body.checkbox;
 
-	console.log(req.body)
 
 
 	if (listName === "Today") {
@@ -170,7 +176,7 @@ app.post("/delete", (req, res) => {
 app.post("/", (req, res) => {
 
 
-	console.log(req.body)
+	
 	const item = new Item({
 		name: req.body.input
 
@@ -191,28 +197,11 @@ app.post("/", (req, res) => {
 
 			foundList.items.push(item);
 			foundList.save();
+			res.redirect("/" + req.body.btn);
 		})
-		res.redirect("/" + req.body.btn);
+		
 
 	}
-
-})
-
-
-app.get("/work", (req, res) => {
-
-
-	res.render("list", {
-		listTitle: "Work List",
-		newListItems: workItems
-	});
-
-})
-
-app.get("/about", (req, res) => {
-
-
-	res.render("about");
 
 })
 
