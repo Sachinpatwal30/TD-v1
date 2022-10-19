@@ -16,7 +16,8 @@ app.use(bodyParser.urlencoded({
 
 const Id=process.env.ID;
 const Password=process.env.Password;
-const url="mongodb+srv://"+Id+Password+"@cluster0.yjjj2y2.mongodb.net/todolistDB";
+
+const url="mongodb+srv://"+Id+Password+"@cluster0.yjjj2y2.mongodb.net/?retryWrites=true&w=majority/todolistDB";
 mongoose.connect(url);
 
 
@@ -210,7 +211,6 @@ let port = process.env.PORT;
 if (port == null || port == "") {
   port = 3000;
 }
-
 
 
 app.listen(port, () => {
